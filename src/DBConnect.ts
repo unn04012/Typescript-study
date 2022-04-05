@@ -16,5 +16,6 @@ export const dataSource = new DataSource({
   username,
   password,
   database,
+  synchronize: false,
   entities: ['src/entities/**/*.ts'],
 });
