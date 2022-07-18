@@ -1,5 +1,6 @@
-import { DataSource } from 'typeorm';
+import { Connection, createConnection, Entity, EntityTarget, Repository } from 'typeorm';
 import { config } from 'dotenv';
+import { Service } from 'typedi';
 config();
 const {
   DATABASE_HOST: host,
@@ -7,15 +8,27 @@ const {
   DATABASE_PASSWORD: password,
   DATABASE_NAME: database,
 } = process.env;
+export const initTypeORMConnection = async () => {
+  const entities = `${__dirname}/entities/**/*.{js,ts}`;
+  const connection = await createConnection({
+    type: 'mysql',
+    host,
+    username,
+    password,
+    database,
+    synchronize: false,
+    logging: true,
+    entities: [entities],
+  });
+  await testDatabaseConnection(connection);
+  return connection;
+};
 
-if (!host || !username || !password || !database) throw new Error('no value');
-export const dataSource = new DataSource({
-  type: 'mysql',
-  host,
-  port: 3306,
-  username,
-  password,
-  database,
-  synchronize: false,
-  entities: ['src/entities/**/*.ts'],
-});
+async function testDatabaseConnection(connection: Connection) {
+  try {
+    await connection.query('SELECT 1');
+  } catch (err) {
+    const dbHost = this.configurator.mysqlConnectionConfig.host;
+    throw new Error(`mysql connection failed for host: ${dbHost}, error: ${err.message}`);
+  }
+}
